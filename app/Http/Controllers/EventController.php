@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dispatch;
 use App\Models\Event;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class EventController extends Controller
     {
         //
         $events = Event::get();
-        return view("dashboard", compact("events"));
+        return view("event_index", compact("events"));
     }
 
     /**
@@ -32,6 +33,15 @@ class EventController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate([
+            "name" => "required",
+            "place" => "required",
+            "event_date" => "required"
+        ], [
+            "name.required" => "エラーが発生しました",
+            "place.required" => "エラーが発生しました",
+            "event_date.required" => "エラーが発生しました",
+        ]);
         Event::create([
             "name" => $request->name,
             "place" => $request->place,
@@ -64,6 +74,15 @@ class EventController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $request->validate([
+            "name" => "required",
+            "place" => "required",
+            "event_date" => "required"
+        ], [
+            "name.required" => "エラーが発生しました",
+            "place.required" => "エラーが発生しました",
+            "event_date.required" => "エラーが発生しました",
+        ]);
         $event = Event::find($id);
         $event->update([
             "name" => $request->name,
@@ -80,7 +99,9 @@ class EventController extends Controller
     {
         //
         $event = Event::find($id);
+        $dispatch = Dispatch::query()->where("event_id", $event->id);
+        $dispatch->delete();
         $event->delete();
-        return redirect(route("dashboard"));
+        return redirect(route("event_index"));
     }
 }

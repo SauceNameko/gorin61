@@ -36,12 +36,24 @@ class DispatchController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate([
+            "event_select" => "required",
+            "workers_select" => "required",
+            "memo" => "required"
+        ], [
+            "event_select.required" => "エラーが発生しました",
+            "workers_select.required" => "エラーが発生しました",
+            "memo.required" => "エラーが発生しました",
+        ]);
         $event_id = Event::query()->where("name", $request->event_select)->first()->id;
-        $workers = Worker::query()->where("name", $request->worker_select)->get();
-        foreach ($workers as $worker) {
+        $results = [];
+        foreach ($request->workers_select as $worker_select) {
+            $results[] = Worker::query()->where("name", $worker_select)->first();
+        }
+        foreach ($results as $result) {
             Dispatch::create([
                 "event_id" => $event_id,
-                "worker_id" => $worker->id,
+                "worker_id" => $result->id,
                 "memo" => $request->memo,
                 "flag" => false
             ]);
@@ -63,6 +75,10 @@ class DispatchController extends Controller
     public function edit(string $id)
     {
         //
+        $events = Event::get();
+        $workers = Worker::get();
+        $dispatch = Dispatch::find($id);
+        return view("dispatch_edit", compact("events", "workers", "dispatch"));
     }
 
     /**
@@ -71,6 +87,24 @@ class DispatchController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $request->validate([
+            "event_select" => "required",
+            "worker_select" => "required",
+            "memo" => "required"
+        ], [
+            "event_select.required" => "エラーが発生しました",
+            "worker_select.required" => "エラーが発生しました",
+            "memo.required" => "エラーが発生しました",
+        ]);
+        $dispatch = Dispatch::find($id);
+        $event_id = Event::query()->where("name", $request->event_select)->first()->id;
+        $worker_id = Worker::query()->where("name", $request->worker_select)->first()->id;
+        $dispatch->update([
+            "event_id" => $event_id,
+            "worker_id" => $worker_id,
+            "memo" => $request->memo,
+        ]);
+        return redirect(route("dispatch_edit", ["id" => $dispatch->id]))->with(["message" => "派遣情報が編集されました"]);
     }
 
     /**

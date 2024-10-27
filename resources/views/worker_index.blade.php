@@ -5,6 +5,7 @@
 @endsection
 
 @section('content')
+    <a href="{{ route('dashboard') }}" class="btn btn-danger">戻る</a>
     <a href="{{ route('worker_create') }}" class="btn btn-primary">人材情報新規登録</a>
     <table class="table table-bordered">
         <tr>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dispatch;
 use App\Models\Worker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -33,6 +34,17 @@ class WorkerController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate([
+            "name" => "required",
+            "email" => "required",
+            "password" => "required",
+            "memo" => "required"
+        ], [
+            "name.required" => "エラーが発生しました",
+            "email.required" => "エラーが発生しました",
+            "password.required" => "エラーが発生しました",
+            "memo.required" => "エラーが発生しました",
+        ]);
         Worker::create([
             "name" => $request->name,
             "email" => $request->email,
@@ -66,6 +78,15 @@ class WorkerController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $request->validate([
+            "name" => "required",
+            "email" => "required",
+            "memo" => "required"
+        ], [
+            "name.required" => "エラーが発生しました",
+            "email.required" => "エラーが発生しました",
+            "memo.required" => "エラーが発生しました",
+        ]);
         $worker = Worker::find($id);
         $worker->update([
             "name" => $request->name,
@@ -82,7 +103,9 @@ class WorkerController extends Controller
     {
         //
         $worker = Worker::find($id);
+        $dispatch = Dispatch::query()->where("event_id", $worker->id);
         $worker->delete();
+        $dispatch->delete();
         return redirect(route("worker_index"));
     }
 }

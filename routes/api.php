@@ -24,33 +24,47 @@ Route::get("/events", function (Request $request) {
     $worker_id = $request->worker_id;
     $event_date = $request->event_date;
     $place = $request->place;
+    $title = $request->title;
+    $events = [];
     $results = [];
-    if ($request->worker_id) {
-        // if ($event_date && $title && $place) {
-        //     $dispatches = Dispatch::query()->where("worker_id", $worker_id)->get();
-        //     foreach ($dispatches as $dispatch) {
-        //         // $event_id = $dispatch->event_id;
-        //         // $event = Event::find($event_id);
-        //         return $dispatch;
-        //         // $data = $event->where("event_date", $event_date)->where("title", $title)->where("place", $place)->get();
-        //         return $event;
-        //     }
-        // }
+    if ($worker_id) {
         $dispatches = Dispatch::query()->where("worker_id", $worker_id)->get();
-
-        return response()->json($dispatches, 200);
+        if ($dispatches->isEmpty()) {
+            return response()->json("エラー", 404);
+        }
+        foreach ($dispatches as $dispatch) {
+            $events[] = Event::query()->find($dispatch->event_id);
+        }
+        foreach ($events as $event) {
+            $data = Event::query();
+            if (isset($event_date)) {
+                $data->where("event_date", $event_date);
+            }
+            if (isset($place)) {
+                $data->where("place", $place);
+            }
+            if (isset($title)) {
+                $data->where("name", "like", "%" . $title . "%");
+            }
+            if (!empty($data->find($event->id))) {
+                $results[] = $data->find($event->id);
+            }
+        }
+        if (empty($results)) {
+            return response()->json("エラー", 404);
+        }
+        return response()->json(["data" => $results], 200);
     }
-    return response()->json("エラー", 404);
 });
 Route::post("/events", function (Request $request) {
     $event_id = $request->event_id;
     $worker_id = $request->worker_id;
     $dispatch = Dispatch::query()->where("event_id", $event_id)->where("worker_id", $worker_id)->first();
     if (empty($dispatch)) {
-        return response()->json("エラー", 404);
+        return response()->json(["message" => "エラー"], 404);
     }
     $dispatch->update([
         "flag" => true
     ]);
-    return response()->json("登録しました", 204);
+    return response()->json("", 204);
 });
